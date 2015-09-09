@@ -1,9 +1,10 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: guillaume
- * Date: 07/09/15
- * Time: 13:17
+ * Image resizer base class
+ *
+ * @author   Guillaume Tissier
+ * @license  http://www.opensource.org/licenses/mit-license.php The MIT License
+ * @link     https://github.com/guillaumetissier/ImageResizer
  */
 
 namespace ImageResizer;
@@ -11,45 +12,46 @@ namespace ImageResizer;
 
 abstract class AbstractImageResizer
 {
+    /**
+     * resize type
+     */
     const PROPORTIONAL = 0;
     const FIXED        = 1;
     const FIXED_HEIGHT = 2;
     const FIXED_WIDTH  = 3;
 
+    /**
+     * dimension keys
+     */
     const RATIO  = 0;
     const WIDTH  = 1;
     const HEIGHT = 2;
 
+    /**
+     * option keys
+     */
     const OPT_INTERLACE = 0; /* true or false */
-    const OPT_BG_RED    = 1; /* from 0 to 255 */
-    const OPT_BG_GREEN  = 2; /* from 0 to 255 */
-    const OPT_BG_BLUE   = 3; /* from 0 to 255 */
-    const OPT_BG_ALPHA  = 4; /* from 0 to 100 */
-    const OPT_QUALITY   = 5; /* from 0 (worst) to 100 (best) */
+    const OPT_QUALITY   = 1; /* from 0 (worst) to 100 (best) */
 
     /**
-     * @var int $type - proportional, fixed, fixed h or w
+     * @var int $type -- cf type constants above
      */
     private $type;
 
     /**
-     * @var array $dimensions
+     * @var array $dimensions -- cf dimension keys above
      */
     protected $dimensions;
 
     /**
-     * @var array $dimensions
+     * @var array $options -- cf option keys above
      */
     protected $options;
 
-
     /**
-     * Loads image source and its properties to the instanciated object
-     *
      * @param int    $type
      * @param array  $dimensions
      * @param array  $options
-     *
      * @throws ImageResizerException
      */
     public function __construct($type, array $dimensions, array $options = [])
@@ -63,27 +65,29 @@ abstract class AbstractImageResizer
     }
 
     /**
-     * @param string $input
-     * @param string $output
+     * resize file $source and save the resized image into $destination
      *
+     * @param string $source      file to resize
+     * @param string $destination resized file
      * @throws ImageResizerException
      */
-    public function resize($input, $output)
+    public function resize($source, $destination)
     {
-        list($srcWidth, $srcHeight) = $this->retrieveSrcDimensions($input);
+        list($srcWidth, $srcHeight) = $this->retrieveSrcDimensions($source);
         list($dstWidth, $dstHeight) = $this->calculateDstDimensions($srcWidth, $srcHeight);
 
-        $srcId = $this->getImageIdentifier($input);
+        $srcId = $this->getImageIdentifier($source);
         $dstId = @imagescale($srcId, $dstWidth, $dstHeight, IMG_BILINEAR_FIXED);
         @imageinterlace($dstId, $this->getOption(self::OPT_INTERLACE));
 
-        $this->save($dstId, $output);
+        $this->save($dstId, $destination);
         @imagedestroy($dstId);
     }
 
     /**
-     * @param $option
+     * get value of $option or false if not defined
      *
+     * @param $option
      * @return bool
      */
     protected function getOption($option)
@@ -92,13 +96,13 @@ abstract class AbstractImageResizer
     }
 
     /**
-     * @param integer $type
+     * check that $resizeType has a correct value
      *
+     * @param integer $resizeType
      * @throws ImageResizerException
-     *
      * @return bool
      */
-    private function checkType($type)
+    private function checkType($resizeType)
     {
         $supportedTypes = [
             self::PROPORTIONAL,
@@ -106,17 +110,17 @@ abstract class AbstractImageResizer
             self::FIXED_HEIGHT,
             self::FIXED_WIDTH
         ];
-        if (!in_array($type, $supportedTypes)) {
+        if (!in_array($resizeType, $supportedTypes)) {
             throw new ImageResizerException(ImageResizerException::WRONG_RESIZE_TYPE);
         }
         return true;
     }
 
     /**
+     * check that $dimensions contains correct pieces of information
+     *
      * @param array $dimensions
-     *
      * @throws ImageResizerException
-     *
      * @return bool
      */
     private function checkDimensions(array $dimensions)
@@ -165,26 +169,27 @@ abstract class AbstractImageResizer
     }
 
     /**
-     * @param $input
+     * Retrieve the dimensions of image $source
      *
+     * @param string $source iamge filename
      * @throws ImageResizerException
-     *
      * @return array
      */
-    private function retrieveSrcDimensions($input)
+    private function retrieveSrcDimensions($source)
     {
-        if (!is_file($input)) {
+        if (!is_file($source)) {
             throw new ImageResizerException(ImageResizerException::FILE_DOES_NOT_EXIST);
         }
 
-        $infos = @getimagesize($input);
+        $infos = @getimagesize($source);
         return array_slice($infos, 0, 2);
     }
 
     /**
-     * @param integer $srcWidth
-     * @param integer $srcHeight
+     * Calculate the dimensions of the resized image
      *
+     * @param integer $srcWidth  width of source image
+     * @param integer $srcHeight height of source image
      * @return array
      */
     private function calculateDstDimensions($srcWidth, $srcHeight)
@@ -217,17 +222,20 @@ abstract class AbstractImageResizer
     }
 
     /**
-     * @param string $input filename
+     * retrieve an image resource id for $source
      *
+     * @param string $source
+     * @throws ImageResizerException
      * @return resource image identifier
      */
-    abstract protected function getImageIdentifier($input);
+    abstract protected function getImageIdentifier($source);
 
     /**
-     * @param $dstId
-     * @param $output
+     * save image identified by $dstId into file $destination
      *
+     * @param resource $dstId       destination image resource id
+     * @param string   $destination name of the destination file
      * @return bool
      */
-    abstract protected function save($dstId, $output);
+    abstract protected function save($dstId, $destination);
 }

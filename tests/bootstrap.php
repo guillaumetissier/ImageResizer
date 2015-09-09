@@ -1,19 +1,19 @@
 <?php
+/**
+ * autoload class
+ *
+ * @author   Guillaume Tissier
+ * @license  http://www.opensource.org/licenses/mit-license.php The MIT License
+ * @link     https://github.com/guillaumetissier/ImageResizer
+ */
+
 spl_autoload_register(function($className) {
 
-    $dir = '../src/';
     $classFiles = explode('\\', $className);
-
-    $classFile = array_pop($classFiles) . '.php';
-    if (file_exists($dir . $classFile)) {
-        require_once($dir . $classFile);
-        return;
-    }
-
-    $dir       = '../vendor/mikey179/vfsStream/src/main/php/';
-    $classFile = str_replace('\\', '/', $className) . '.php';
-    if (file_exists($dir . $classFile)) {
-        require_once($dir . $classFile);
-        return;
+    if ('ImageResizer' === $classFiles[0]) {
+        $file = '../src/' . $classFiles[1] . '.php';
+        if (file_exists($file)) {
+            require_once($file);
+        }
     }
 });

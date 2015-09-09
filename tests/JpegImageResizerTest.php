@@ -1,9 +1,10 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: guillaume
- * Date: 07/09/15
- * Time: 13:17
+ * PhpUnit tests for class JpegImageResizer
+ *
+ * @author   Guillaume Tissier
+ * @license  http://www.opensource.org/licenses/mit-license.php The MIT License
+ * @link     https://github.com/guillaumetissier/ImageResizer
  */
 
 namespace ImageResizer;
